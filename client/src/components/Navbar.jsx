@@ -15,6 +15,7 @@ import {
 import { Link as ReactLink } from 'react-router-dom';
 import { HamburgerIcon, CloseIcon, MoonIcon, SunIcon } from '@chakra-ui/icons';
 import { FaComputerMouse } from 'react-icons/fa6';
+import { useState } from 'react';
 
 const links = [
   { linkName: 'Products', path: '/products' },
@@ -35,6 +36,7 @@ const NavLink = ({ path, children }) => (
 const Navbar = () => {
   const { isOpen, onClose, onOpen } = useDisclosure();
   const { colorMode, toggleColorMode } = useColorMode();
+  const [isHovering, setIsHovering] = useState(false);
   return (
     <Box bg={useColorModeValue('gray.100', 'gray.900')} px={4}>
       <Flex h={16} alignItems='center' justifyContent='space-between'>
@@ -45,10 +47,15 @@ const Navbar = () => {
           onClick={isOpen ? onClose : onOpen}
         />
         <HStack>
-          <Link as={ReactLink} to='/'>
+          <Link
+            as={ReactLink}
+            to='/'
+            style={{ textDecoration: 'none' }}
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}>
             <Flex alignItems={'center'}>
-              <Icon as={FaComputerMouse} h={6} w={6} color='blue.400' />
-              <Text fontWeight={'extrabold'} color='blue.500'>
+              <Icon as={FaComputerMouse} h={6} w={6} color={isHovering ? 'yellow.400' : 'blue.400'} />
+              <Text fontWeight={'extrabold'} ml={1} color='grey.500'>
                 WIZZARD
               </Text>
             </Flex>
