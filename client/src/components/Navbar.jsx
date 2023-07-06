@@ -11,11 +11,21 @@ import {
   Stack,
   useColorModeValue,
   useColorMode,
+  useToast,
+  Menu,
+  MenuButton,
+  MenuDivider,
+  MenuList,
+  MenuItem,
 } from '@chakra-ui/react';
 import { Link as ReactLink } from 'react-router-dom';
-import { HamburgerIcon, CloseIcon, MoonIcon, SunIcon } from '@chakra-ui/icons';
+import { HamburgerIcon, CloseIcon, MoonIcon, SunIcon, ChevronDownIcon } from '@chakra-ui/icons';
+import { CgProfile } from 'react-icons/cg';
+import { MdLocalShipping, MdLogout, MdOutlineAdminPanelSettings } from 'react-icons/md';
 import { FaComputerMouse } from 'react-icons/fa6';
 import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { logout } from '../redux/actions/userActions';
 
 const links = [
   { linkName: 'Products', path: '/products' },
@@ -37,6 +47,15 @@ const Navbar = () => {
   const { isOpen, onClose, onOpen } = useDisclosure();
   const { colorMode, toggleColorMode } = useColorMode();
   const [isHovering, setIsHovering] = useState(false);
+  const user = useSelector((state) => state.user);
+  const { userInfo } = user;
+  const dispatch = useDispatch();
+  const toast = useToast();
+
+  const logoutHandler = () => {
+    dispatch(logout());
+    toast({ description: 'You have been logged out.', status: 'success', isClosable: true });
+  };
   return (
     <Box bg={useColorModeValue('gray.100', 'gray.900')} px={4}>
       <Flex h={16} alignItems='center' justifyContent='space-between'>
@@ -46,6 +65,7 @@ const Navbar = () => {
           display={{ md: 'none' }}
           onClick={isOpen ? onClose : onOpen}
         />
+
         <HStack>
           <Link
             as={ReactLink}
@@ -53,11 +73,9 @@ const Navbar = () => {
             style={{ textDecoration: 'none' }}
             onMouseEnter={() => setIsHovering(true)}
             onMouseLeave={() => setIsHovering(false)}>
-            <Flex alignItems={'center'}>
+            <Flex alignItems='center'>
               <Icon as={FaComputerMouse} h={6} w={6} color={isHovering ? 'yellow.400' : 'blue.400'} />
-              <Text fontWeight={'extrabold'} ml={1} color='grey.500'>
-                WIZZARD
-              </Text>
+              <Text fontWeight='extrabold'>Wizzard</Text>
             </Flex>
           </Link>
           <HStack as='nav' spacing={4} display={{ base: 'none', md: 'flex' }}>
@@ -69,24 +87,62 @@ const Navbar = () => {
           </HStack>
         </HStack>
         <Flex alignItems='center'>
-          <NavLink>
-            <Icon as={colorMode == 'light' ? MoonIcon : SunIcon} alignSelf='center' onClick={() => toggleColorMode()} />
-          </NavLink>
-          <Button as={ReactLink} to='/login' p={2} fontSize='sm' fontWeight={400} variant='link'>
-            Sign In
-          </Button>
-          <Button
-            as={ReactLink}
-            to='/registration'
-            m={2}
-            display={{ base: 'none', md: 'inline-flex' }}
-            fontSize='sm'
-            fontWeight={600}
-            _hover={{ bg: 'blue.200' }}
-            bg='blue.900'
-            color='white'>
-            Sign Up
-          </Button>
+          <Icon
+            cursor='pointer'
+            mr='3'
+            as={colorMode === 'light' ? MoonIcon : SunIcon}
+            alignSelf='center'
+            onClick={() => toggleColorMode()}
+          />
+          {userInfo ? (
+            <Menu>
+              <MenuButton px='4' py='2' transition='all 0.3s' as={Button}>
+                {userInfo.name} <ChevronDownIcon />
+              </MenuButton>
+              <MenuList>
+                <MenuItem as={ReactLink} to='/profile'>
+                  <CgProfile />
+                  <Text ml='2'>Profile</Text>
+                </MenuItem>
+                <MenuItem as={ReactLink} to='/your-orders'>
+                  <MdLocalShipping />
+                  <Text ml='2'>Your Orders</Text>
+                </MenuItem>
+                {userInfo.isAdmin === 'true' && (
+                  <>
+                    <MenuDivider />
+                    <MenuItem as={ReactLink} to={'/admin-console'}>
+                      <MdOutlineAdminPanelSettings />
+                      <Text ml='2'>Admin Console</Text>
+                    </MenuItem>
+                  </>
+                )}
+                <MenuDivider />
+                <MenuItem onClick={logoutHandler}>
+                  <MdLogout />
+                  <Text ml='2'>Logout</Text>
+                </MenuItem>
+              </MenuList>
+            </Menu>
+          ) : (
+            <>
+              <Button as={ReactLink} to='/login' p={2} fontSize='sm' fontWeight={400} variant='link'>
+                Login
+              </Button>
+              <Button
+                as={ReactLink}
+                to='/registration'
+                m={2}
+                display={{ base: 'none', md: 'inline-flex' }}
+                fontSize='sm'
+                fontWeight={600}
+                _hover={{ bg: 'blue.400' }}
+                bg='blue.500'
+                color='white'>
+                Sign Up
+              </Button>{' '}
+            </>
+          )}
         </Flex>
       </Flex>
       {isOpen ? (
@@ -98,7 +154,7 @@ const Navbar = () => {
               </NavLink>
             ))}
             <NavLink key='sign up' path='/registration'>
-              Sing Up
+              Sign Up
             </NavLink>
           </Stack>
         </Box>
