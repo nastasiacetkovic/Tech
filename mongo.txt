@@ -3,3 +3,7 @@ MONGO DB
 nastasia2912
 
 mongodb+srv://nastasia2912:<password>@database.tdtfaty.mongodb.net/?retryWrites=true&w=majority
+
+PAYPAL
+nastasia.cetkovic@gmail.com
+nastasia2912
