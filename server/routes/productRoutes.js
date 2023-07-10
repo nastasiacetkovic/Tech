@@ -2,7 +2,7 @@ import express from 'express';
 import Product from '../models/Product.js';
 import asyncHandler from 'express-async-handler';
 import User from '../models/User.js';
-import protectRoute from '../middleware/authMiddleware.js';
+import { protectRoute, admin } from '../middleware/authMiddleware.js';
 
 const productRoutes = express.Router();
 
@@ -144,9 +144,9 @@ const removeProductReview = asyncHandler(async (req, res) => {
 productRoutes.route('/').get(getProducts);
 productRoutes.route('/:id').get(getProduct);
 productRoutes.route('/reviews/:id').post(protectRoute, createProductReview);
-//productRoutes.route('/').put(protectRoute, admin, updateProduct);
-//productRoutes.route('/:id').delete(protectRoute, admin, deleteProduct);
-//productRoutes.route('/').post(protectRoute, admin, createNewProduct);
-//productRoutes.route('/:productId/:reviewId').put(protectRoute, admin, removeProductReview);
+productRoutes.route('/').put(protectRoute, admin, updateProduct);
+productRoutes.route('/:id').delete(protectRoute, admin, deleteProduct);
+productRoutes.route('/').post(protectRoute, admin, createNewProduct);
+productRoutes.route('/:productId/:reviewId').put(protectRoute, admin, removeProductReview);
 
 export default productRoutes;
