@@ -1,152 +1,66 @@
 import express from 'express';
-import Product from '../models/Product.js';
 import asyncHandler from 'express-async-handler';
-import User from '../models/User.js';
-import { protectRoute, admin } from '../middleware/authMiddleware.js';
+import Order from '../models/Order.js';
+import { admin, protectRoute } from '../middleware/authMiddleware.js';
 
-const productRoutes = express.Router();
+const orderRoutes = express.Router();
 
-const getProducts = async (req, res) => {
-  const products = await Product.find({});
-  res.json(products);
+const createOrder = asyncHandler(async (req, res) => {
+  const { orderItems, shippingAddress, paymentMethod, shippingPrice, totalPrice, paymentDetails, userInfo } = req.body;
+
+  if (orderItems && orderItems.length === 0) {
+    res.status(400);
+    throw new Error('No order items.');
+  } else {
+    const order = new Order({
+      orderItems,
+      user: userInfo._id,
+      username: userInfo.name,
+      email: userInfo.email,
+      shippingAddress,
+      paymentMethod,
+      paymentDetails,
+      shippingPrice,
+      totalPrice,
+    });
+
+    const createdOrder = await order.save();
+    res.status(201).json(createdOrder);
+  }
+});
+
+const getOrders = async (req, res) => {
+  const orders = await Order.find({});
+  res.json(orders);
 };
 
-const getProduct = async (req, res) => {
-  const product = await Product.findById(req.params.id);
+const deleteOrder = asyncHandler(async (req, res) => {
+  const order = await Order.findByIdAndDelete(req.params.id);
 
-  if (product) {
-    res.json(product);
+  if (order) {
+    res.json(order);
   } else {
     res.status(404);
-    throw new Error('Product not found.');
-  }
-};
-
-const createProductReview = asyncHandler(async (req, res) => {
-  const { rating, comment, userId, title } = req.body;
-
-  const product = await Product.findById(req.params.id);
-
-  const user = await User.findById(userId);
-
-  if (product) {
-    const alreadyReviewed = product.reviews.find((rev) => rev.user.toString() === user._id.toString());
-
-    if (alreadyReviewed) {
-      res.status(400);
-      throw new Error('Product already reviewed.');
-    }
-
-    const review = {
-      name: user.name,
-      rating: Number(rating),
-      comment,
-      title,
-      user: user._id,
-    };
-
-    product.reviews.push(review);
-
-    product.numberOfReviews = product.reviews.length;
-    product.rating = product.reviews.reduce((acc, item) => item.rating + acc, 0) / product.reviews.length;
-    await product.save();
-    res.status(201).json({ message: 'Review has been saved.' });
-  } else {
-    res.status(404);
-    throw new Error('Product not found.');
+    throw new Error('Order not found.');
   }
 });
 
-//create a product
-const createNewProduct = asyncHandler(async (req, res) => {
-  const { brand, name, category, stock, price, image, productIsNew, description } = req.body;
+const setDelivered = asyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.id);
 
-  const newProduct = await Product.create({
-    brand,
-    name,
-    category,
-    stock,
-    price,
-    image: '/images/' + image,
-    productIsNew,
-    description,
-  });
-  await newProduct.save();
-
-  const products = await Product.find({});
-
-  if (newProduct) {
-    res.json(products);
+  if (order) {
+    order.isDelivered = true;
+    const updatedOrder = await order.save();
+    res.json(updatedOrder);
   } else {
     res.status(404);
-    throw new Error('Product could not be uploaded.');
-  }
-});
-// delete a product
-const deleteProduct = asyncHandler(async (req, res) => {
-  const product = await Product.findByIdAndDelete(req.params.id);
-
-  if (product) {
-    res.json(product);
-  } else {
-    res.status(404);
-    throw new Error('Product not found');
-  }
-});
-//update a product
-const updateProduct = asyncHandler(async (req, res) => {
-  const { brand, name, image, category, stock, price, id, productIsNew, description } = req.body;
-
-  const product = await Product.findById(id);
-
-  if (product) {
-    product.name = name;
-    product.price = price;
-    product.description = description;
-    product.brand = brand;
-    product.image = '/images/' + image;
-    product.category = category;
-    product.stock = stock;
-    product.productIsNew = productIsNew;
-
-    const updatedProduct = await product.save();
-    res.json(updatedProduct);
-  } else {
-    res.status(404);
-    throw new Error('Product not found.');
+    throw new Error('Order could not be updated.');
   }
 });
 
-const removeProductReview = asyncHandler(async (req, res) => {
-  const product = await Product.findById(req.params.productId);
+orderRoutes.route('/').post(protectRoute, createOrder);
+orderRoutes.route('/:id').delete(protectRoute, admin, deleteOrder);
+orderRoutes.route('/:id').put(protectRoute, admin, setDelivered);
+orderRoutes.route('/').get(protectRoute, admin, getOrders);
 
-  const updatedReviews = product.reviews.filter((rev) => rev._id.valueOf() !== req.params.reviewId);
-
-  if (product) {
-    product.reviews = updatedReviews;
-
-    product.numberOfReviews = product.reviews.length;
-
-    if (product.numberOfReviews > 0) {
-      product.rating = product.reviews.reduce((acc, item) => item.rating + acc, 0) / product.reviews.length;
-    } else {
-      product.rating = 1;
-    }
-
-    await product.save();
-    res.status(201).json({ message: 'Review hass been removed.' });
-  } else {
-    res.status(404);
-    throw new Error('Product not found.');
-  }
-});
-
-productRoutes.route('/').get(getProducts);
-productRoutes.route('/:id').get(getProduct);
-productRoutes.route('/reviews/:id').post(protectRoute, createProductReview);
-productRoutes.route('/').put(protectRoute, admin, updateProduct);
-productRoutes.route('/:id').delete(protectRoute, admin, deleteProduct);
-productRoutes.route('/').post(protectRoute, admin, createNewProduct);
-productRoutes.route('/:productId/:reviewId').put(protectRoute, admin, removeProductReview);
-
-export default productRoutes;
+export default orderRoutes;

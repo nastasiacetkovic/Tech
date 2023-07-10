@@ -9,7 +9,6 @@ import {
   Link,
   Divider,
   useToast,
-  useDisclosure,
 } from '@chakra-ui/react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link as ReactLink } from 'react-router-dom';
@@ -21,12 +20,8 @@ import PayPalButton from './PayPalButton';
 
 import { resetCart } from '../redux/actions/cartActions';
 import { useNavigate } from 'react-router-dom';
-import PaymentSuccessModal from './PaymentSuccessModal';
-import PaymentErrorModal from './PaymentErrorModal';
 
 const CheckoutOrderSummary = () => {
-  const { onClose: onErrorClose, onOpen: onErrorOpen, isOpen: isErrorOpen } = useDisclosure();
-  const { onClose: onSuccessClose, onOpen: onSuccessOpen, isOpen: isSuccessOpen } = useDisclosure();
   const colorMode = mode('gray.600', 'gray.400');
   const cartItems = useSelector((state) => state.cart);
   const { cart, subtotal, expressShipping } = cartItems;
@@ -58,7 +53,6 @@ const CheckoutOrderSummary = () => {
   }, [error, shippingAddress, total, expressShipping, shipping, dispatch]);
 
   const onPaymentSuccess = async (data) => {
-    onSuccessOpen();
     dispatch(
       createOrder({
         orderItems: cart,
@@ -76,7 +70,6 @@ const CheckoutOrderSummary = () => {
   };
 
   const onPaymentError = (error) => {
-    onErrorOpen();
     toast({
       description:
         'Something went wrong during the payment process. Please try again or make sure that your PayPal account balance is enough for this purchase.',
@@ -135,7 +128,7 @@ const CheckoutOrderSummary = () => {
       />
       <Box align='center'>
         <Text fontSize='sm'>Have questions? or need help to complete your order?</Text>
-        <Flex justifyContent='center' color={mode('blue.500', 'blue.100')}>
+        <Flex justifyContent='center' color={mode('orange.500', 'orange.100')}>
           <Flex align='center'>
             <ChatIcon />
             <Text m='2'>Live Chat</Text>
@@ -157,8 +150,6 @@ const CheckoutOrderSummary = () => {
           Continue Shopping
         </Link>
       </Flex>
-      <PaymentErrorModal onClose={onErrorClose} onOpen={onErrorOpen} isOpen={isErrorOpen} />
-      <PaymentErrorModal onClose={onSuccessClose} onOpen={onSuccessOpen} isOpen={isSuccessOpen} />
     </Stack>
   );
 };

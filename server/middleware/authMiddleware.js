@@ -34,4 +34,4 @@ const admin = (req, res, next) => {
   }
 };
 
-export default { protectRoute, admin };
+export { protectRoute, admin };
