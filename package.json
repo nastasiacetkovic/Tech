@@ -5,6 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "start": "node server/index",
     "client": "npm run start --prefix client",
     "server": "node server/index.js",
     "app": "concurrently npm \"npm run server\" \"npm run client\""
@@ -20,6 +21,7 @@
   },
   "homepage": "https://github.com/nastasiacetkovic/Tech#readme",
   "dependencies": {
+    "axios": "^1.4.0",
     "bcryptjs": "^2.4.3",
     "concurrently": "^8.2.0",
     "dotenv": "^16.3.1",

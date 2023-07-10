@@ -1,9 +1,10 @@
 import express from 'express';
 import User from '../models/User.js';
-
+import Order from '../models/Order.js';
 import asyncHandler from 'express-async-handler';
 import jwt from 'jsonwebtoken';
 import protectRoute from '../middleware/authMiddleware.js';
+import order from '../../client/src/redux/slices/order.js';
 
 const userRoutes = express.Router();
 
@@ -87,7 +88,28 @@ const updateUserProfile = asyncHandler(async (req, res) => {
   }
 });
 
+const getUserOrders = async (req, res) => {
+  const orders = await Order.find({ user: req.params.id });
+  if (orders) res.json(orders);
+  else {
+    res.status(404);
+    throw new Error('No orders found');
+  }
+};
+
+const deleteOrder = asyncHandler(async (req, res) => {
+  const order = await Order.findByIdAndDelete(req.params.id);
+
+  if (order) {
+    res.json(order);
+  } else {
+    res.status(404);
+    throw new Error('Order not found.');
+  }
+});
+
 userRoutes.route('/login').post(loginUser);
 userRoutes.route('/register').post(registerUser);
 userRoutes.route('/profile/:id').put(protectRoute, updateUserProfile);
+userRoutes.route('/:id').get(protectRoute, getUserOrders);
 export default userRoutes;

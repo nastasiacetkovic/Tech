@@ -31,7 +31,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getProduct } from '../redux/actions/productActions';
 import { addCartItem } from '../redux/actions/cartActions';
 import { useEffect, useState } from 'react';
-//import { createProductReview, resetProductError } from '../redux/actions/productActions';
+import { createProductReview, resetProductError } from '../redux/actions/productActions';
 
 const ProductScreen = () => {
   const [comment, setComment] = useState('');
@@ -49,8 +49,17 @@ const ProductScreen = () => {
   const cartContent = useSelector((state) => state.cart);
   const { cart } = cartContent;
 
+  const user = useSelector((state) => state.user);
+  const { userInfo } = user;
+
   useEffect(() => {
     dispatch(getProduct(id));
+
+    if (reviewSend) {
+      toast({ description: 'Product review saved.', status: 'success', isClosable: true });
+      dispatch(resetProductError());
+      setReviewBoxOpen(false);
+    }
   }, [dispatch, id, cart, reviewSend]);
 
   const changeAmount = (input) => {
@@ -62,6 +71,12 @@ const ProductScreen = () => {
     }
   };
 
+  const hasUserReviewed = () => product.reviews.some((item) => item.user === userInfo._id);
+
+  const onSubmit = () => {
+    dispatch(createProductReview(product._id, userInfo._id, comment, rating, title));
+  };
+
   const addItem = () => {
     dispatch(addCartItem(product._id, amount));
     toast({ description: 'Item has been added.', status: 'success', isClosable: true });
@@ -71,7 +86,7 @@ const ProductScreen = () => {
     <Wrap spacing='30px' justify='center' minHeight='100vh'>
       {loading ? (
         <Stack direction='row' spacing={4}>
-          <Spinner mt={20} thickness='2px' speed='0.65s' emptyColor='gray.200' color='blue.500' size='xl' />
+          <Spinner mt={20} thickness='2px' speed='0.65s' emptyColor='gray.200' color='orange.500' size='xl' />
         </Stack>
       ) : error ? (
         <Alert status='error'>
@@ -110,11 +125,11 @@ const ProductScreen = () => {
                     <Text fontSize='xl'>${product.price}</Text>
                     <Flex>
                       <HStack spacing='2px'>
-                        <StarIcon color='blue.500' />
-                        <StarIcon color={product.rating >= 2 ? 'blue.500' : 'gray.200'} />
-                        <StarIcon color={product.rating >= 3 ? 'blue.500' : 'gray.200'} />
-                        <StarIcon color={product.rating >= 4 ? 'blue.500' : 'gray.200'} />
-                        <StarIcon color={product.rating >= 5 ? 'blue.500' : 'gray.200'} />
+                        <StarIcon color='orange.500' />
+                        <StarIcon color={product.rating >= 2 ? 'orange.500' : 'gray.200'} />
+                        <StarIcon color={product.rating >= 3 ? 'orange.500' : 'gray.200'} />
+                        <StarIcon color={product.rating >= 4 ? 'orange.500' : 'gray.200'} />
+                        <StarIcon color={product.rating >= 5 ? 'orange.500' : 'gray.200'} />
                       </HStack>
                       <Text fontSize='md' fontWeight='bold' ml='4px'>
                         {product.numberOfReviews} Reviews
@@ -132,7 +147,7 @@ const ProductScreen = () => {
                       <SmallAddIcon w='20px' h='25px' />
                     </Button>
                   </Flex>
-                  <Button isDisabled={product.stock === 0} colorScheme='blue' onClick={() => addItem()}>
+                  <Button isDisabled={product.stock === 0} colorScheme='orange' onClick={() => addItem()}>
                     Add to cart
                   </Button>
                   <Stack width='270px'>
@@ -162,7 +177,58 @@ const ProductScreen = () => {
                 <Image mb='30px' src={product.image} alt={product.name} />
               </Flex>
             </Stack>
-
+            {userInfo && (
+              <>
+                <Tooltip label={hasUserReviewed() ? 'You have already reviewed this product.' : ''} fontSize='md'>
+                  <Button
+                    isDisabled={hasUserReviewed()}
+                    my='20px'
+                    w='140px'
+                    colorScheme='orange'
+                    onClick={() => setReviewBoxOpen(!reviewBoxOpen)}>
+                    Write a review
+                  </Button>
+                </Tooltip>
+                {reviewBoxOpen && (
+                  <Stack mb='20px'>
+                    <Wrap>
+                      <HStack spacing='2px'>
+                        <Button variant='outline' onClick={() => setRating(1)}>
+                          <StarIcon color='orange.500' />
+                        </Button>
+                        <Button variant='outline' onClick={() => setRating(2)}>
+                          <StarIcon color={rating >= 2 ? 'orange.500' : 'gray.200'} />
+                        </Button>
+                        <Button variant='outline' onClick={() => setRating(3)}>
+                          <StarIcon color={rating >= 3 ? 'orange.500' : 'gray.200'} />
+                        </Button>
+                        <Button variant='outline' onClick={() => setRating(4)}>
+                          <StarIcon color={rating >= 4 ? 'orange.500' : 'gray.200'} />
+                        </Button>
+                        <Button variant='outline' onClick={() => setRating(5)}>
+                          <StarIcon color={rating >= 5 ? 'orange.500' : 'gray.200'} />
+                        </Button>
+                      </HStack>
+                    </Wrap>
+                    <Input
+                      onChange={(e) => {
+                        setTitle(e.target.value);
+                      }}
+                      placeholder='Review title (optional)'
+                    />
+                    <Textarea
+                      onChange={(e) => {
+                        setComment(e.target.value);
+                      }}
+                      placeholder={`The ${product.name} is...`}
+                    />
+                    <Button w='140px' colorScheme='orange' onClick={() => onSubmit()}>
+                      Publish review
+                    </Button>
+                  </Stack>
+                )}
+              </>
+            )}
             <Stack>
               <Text fontSize='xl' fontWeight='bold'>
                 Reviews
@@ -171,11 +237,11 @@ const ProductScreen = () => {
                 {product.reviews.map((review) => (
                   <Box key={review._id}>
                     <Flex spacing='2px' alignItems='center'>
-                      <StarIcon color='blue.500' />
-                      <StarIcon color={review.rating >= 2 ? 'blue.500' : 'gray.200'} />
-                      <StarIcon color={review.rating >= 3 ? 'blue.500' : 'gray.200'} />
-                      <StarIcon color={review.rating >= 4 ? 'blue.500' : 'gray.200'} />
-                      <StarIcon color={review.rating >= 5 ? 'blue.500' : 'gray.200'} />
+                      <StarIcon color='orange.500' />
+                      <StarIcon color={review.rating >= 2 ? 'orange.500' : 'gray.200'} />
+                      <StarIcon color={review.rating >= 3 ? 'orange.500' : 'gray.200'} />
+                      <StarIcon color={review.rating >= 4 ? 'orange.500' : 'gray.200'} />
+                      <StarIcon color={review.rating >= 5 ? 'orange.500' : 'gray.200'} />
                       <Text fontWeight='semibold' ml='4px'>
                         {review.title && review.title}
                       </Text>
