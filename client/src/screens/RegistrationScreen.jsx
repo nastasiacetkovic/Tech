@@ -39,7 +39,7 @@ const RegistrationScreen = () => {
       navigate(redirect);
       toast({ description: 'Account created. Welcome aboard.', status: 'success', isClosable: true });
     }
-  }, [userInfo, redirect, error, navigate, toast]); //what does the useeffect need to observe
+  }, [userInfo, redirect, error, navigate, toast]);
 
   return (
     <Formik

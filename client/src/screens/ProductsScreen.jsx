@@ -4,8 +4,8 @@ import {
   WrapItem,
   Spinner,
   Stack,
-  AlertIcon,
   Alert,
+  AlertIcon,
   AlertDescription,
   AlertTitle,
 } from '@chakra-ui/react';
@@ -28,12 +28,12 @@ const ProductsScreen = () => {
     <Wrap spacing='30px' justify='center' minHeight='100vh'>
       {loading ? (
         <Stack direction='row' spacing={4}>
-          <Spinner mt={20} thickness='2px' emptyColor='gray.200' color='blue.500' speed='0.65s' size='xl' />
+          <Spinner mt={20} thickness='2px' speed='0.65s' emptyColor='gray.200' color='orange.500' size='xl' />
         </Stack>
       ) : error ? (
         <Alert status='error'>
           <AlertIcon />
-          <AlertTitle>Upps! We are sorry. </AlertTitle>
+          <AlertTitle>We are sorry!</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : (
