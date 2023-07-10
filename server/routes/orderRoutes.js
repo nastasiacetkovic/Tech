@@ -59,8 +59,8 @@ const setDelivered = asyncHandler(async (req, res) => {
 });
 
 orderRoutes.route('/').post(protectRoute, createOrder);
-//orderRoutes.route('/:id').delete(protectRoute, admin, deleteOrder);
-//orderRoutes.route('/:id').put(protectRoute, admin, setDelivered);
-//orderRoutes.route('/').get(protectRoute, admin, getOrders);
+orderRoutes.route('/:id').delete(protectRoute, admin, deleteOrder);
+orderRoutes.route('/:id').put(protectRoute, admin, setDelivered);
+orderRoutes.route('/').get(protectRoute, admin, getOrders);
 
 export default orderRoutes;
